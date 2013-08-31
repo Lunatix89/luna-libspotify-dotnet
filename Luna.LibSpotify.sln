@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Luna.LibSpotify", "Luna.LibSpotify\Luna.LibSpotify.vcxproj", "{7CE7459F-F190-4DCC-9288-EED77C5A632C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Luna.SpotifyShell", "Luna.SpotifyShell\Luna.SpotifyShell.csproj", "{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Luna.SpotifyShell.Core", "Luna.LibSpotify\Luna.SpotifyShell.Core\Luna.SpotifyShell.Core.csproj", "{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Debug|Win32.Build.0 = Debug|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Release|Any CPU.ActiveCfg = Release|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Release|Win32.ActiveCfg = Release|Win32
+		{7CE7459F-F190-4DCC-9288-EED77C5A632C}.Release|Win32.Build.0 = Release|Win32
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{15DD6025-502C-4BAA-B2F2-3C7FF4F6F0F3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{018BF27B-2A80-4FFA-9EFE-AFB9CEB9EE0C}.Release|Win32.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

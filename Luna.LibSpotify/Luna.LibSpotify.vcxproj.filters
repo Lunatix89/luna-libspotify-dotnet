@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{87cf1538-e161-41ea-8e65-1ee7f1e464f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\track">
+      <UniqueIdentifier>{07feaa2d-ce76-476a-8932-564fef2880e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\session">
+      <UniqueIdentifier>{3c155e14-6728-4bec-b277-143d19a5fea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\user">
+      <UniqueIdentifier>{2c41656b-ced6-4c20-9139-214eb52441cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\album">
+      <UniqueIdentifier>{2c06c114-a20d-4cfb-82aa-0e4cff20ebbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\artist">
+      <UniqueIdentifier>{34383b65-ac5d-4da2-98e2-a7b91d40b70f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\image">
+      <UniqueIdentifier>{8aef0ad3-ed74-469d-a524-d41a642e172d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\inbox">
+      <UniqueIdentifier>{1cf7ed15-8449-4a75-b9d6-456928eb6329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\links">
+      <UniqueIdentifier>{beac884f-c091-4d5e-bbd0-ecca7b20e1c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\playlist">
+      <UniqueIdentifier>{794dcb2e-92ad-43ec-aad3-d27847f1677c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\search">
+      <UniqueIdentifier>{a1ede7df-2498-452b-a51c-e3679db15b97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\toplist">
+      <UniqueIdentifier>{7ad85456-cc85-4239-9da5-e81828578941}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\user\User.cpp">
+      <Filter>source\user</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\AudioBufferStats.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\AudioFormat.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\OfflineSyncStatus.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\Session.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\SessionConfig.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+    <ClCompile Include="source\session\Subscribers.cpp">
+      <Filter>source\session</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\Enumerations.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\InteropUtilities.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\user\User.h">
+      <Filter>source\user</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\AudioBufferStats.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\AudioFormat.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\OfflineSyncStatus.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\Session.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\SessionConfig.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\session\Subscribers.h">
+      <Filter>source\session</Filter>
+    </ClInclude>
+    <ClInclude Include="source\TemplateHeader.h">
+      <Filter>source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

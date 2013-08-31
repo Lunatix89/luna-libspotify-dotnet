@@ -1,8 +1,32 @@
+*.sdf
+*.opensdf
+*.obj
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.sln.docstates
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.dll
+*.lib
 # Compiled Object files
 *.slo
 *.lo
 *.o
-
+*.vssscc
+obj*/
+[Dd]ebug*/
+[Rr]elease*/
 # Compiled Dynamic libraries
 *.so
 *.dylib
