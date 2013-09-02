@@ -100,6 +100,19 @@ namespace Luna {
 
 		}
 
+		static int SP_CALLCONV music_delivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames) {
+			return Session::raiseOnMusicDelivery(session, format, frames, num_frames);
+		}
+
+		static void SP_CALLCONV play_token_lost(sp_session *session) {
+			Session::raisePlayTokenLost(session);
+		}
+
+		static void SP_CALLCONV end_of_track(sp_session *session) {
+			Session::raiseEndOfTrack(session);
+		}
+
+
 		SessionConfig::SessionConfig(sp_session_config* unmanagedPointer){
 			this->unmanagedPointer = unmanagedPointer;
 			init();
@@ -130,11 +143,11 @@ namespace Luna {
 			callbacks->metadata_updated = metadata_updated;
 			callbacks->connection_error = connection_error;
 			callbacks->notify_main_thread = notify_main_thread;
-		#if WITH_TEST_COMMAND
+		
 			callbacks->music_delivery = music_delivery;
 			callbacks->play_token_lost = play_token_lost;
 			callbacks->end_of_track = end_of_track;
-		#endif
+		
 			callbacks->log_message = log_message;
 			callbacks->offline_status_updated = offline_status_updated;
 			callbacks->credentials_blob_updated = credentials_blob_updated;

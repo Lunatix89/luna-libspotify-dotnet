@@ -11,17 +11,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\links\Link.cpp" />
     <ClCompile Include="source\session\AudioBufferStats.cpp" />
     <ClCompile Include="source\session\AudioFormat.cpp" />
     <ClCompile Include="source\session\OfflineSyncStatus.cpp" />
     <ClCompile Include="source\session\Session.cpp" />
     <ClCompile Include="source\session\SessionConfig.cpp" />
     <ClCompile Include="source\session\Subscribers.cpp" />
+    <ClCompile Include="source\track\Track.cpp" />
     <ClCompile Include="source\user\User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Enumerations.h" />
     <ClInclude Include="source\InteropUtilities.h" />
+    <ClInclude Include="source\links\Link.h" />
     <ClInclude Include="source\session\AudioBufferStats.h" />
     <ClInclude Include="source\session\AudioFormat.h" />
     <ClInclude Include="source\session\OfflineSyncStatus.h" />
@@ -32,6 +35,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DeploymentContent>
     </ClInclude>
+    <ClInclude Include="source\track\Track.h" />
     <ClInclude Include="source\user\User.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -47,6 +51,7 @@
     <PlatformToolset>v110</PlatformToolset>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
+    <WindowsAppContainer>false</WindowsAppContainer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

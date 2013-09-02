@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include <memory>
 #include "Session.h";
-
+#include "../track/Track.h"
+#include "AudioFormat.h"
 
 
 using namespace System;
@@ -21,7 +22,8 @@ namespace Luna {
 			sessionConfig = gcnew LibSpotify::SessionConfig();
 			sessionTask = gcnew Task(gcnew Action<Object^>(this, &Session::sessionRunner), gcnew Object(), CancellationToken::None, System::Threading::Tasks::TaskCreationOptions::LongRunning);
 			sessionTask->Start(TaskScheduler::Default);
-
+			deliveryBufferSize = initialDeliveryBufferSize;
+			deliveryBuffer = gcnew array<short>(deliveryBufferSize);
 		}
 
 		Session::~Session(){
@@ -31,6 +33,8 @@ namespace Luna {
 				delete unmanagedPointer;
 			}
 		}
+
+		/** threading **/
 
 		void Session::sessionRunner(Object^ state) { 
 			bool working = false;
@@ -87,6 +91,8 @@ namespace Luna {
 			}
 		}
 
+		/** invoke **/
+
 		void Session::invoke(Action^ action, bool needsActiveSession) {
 			ActionInfo^ info = gcnew ActionInfo();
 			info->action = action;
@@ -117,6 +123,8 @@ namespace Luna {
 			}
 		}
 
+		/** session **/
+
 		void Session::createSession(){
 			invoke(gcnew Action(this, &Session::createSessionInternal), false);
 		}
@@ -139,7 +147,9 @@ namespace Luna {
 					break;
 			}
 					
-			SessionCreated(this, static_cast<SpErrorCode>(errorCode));
+			SpErrorCode error = static_cast<SpErrorCode>(errorCode);
+			SessionCreated(this, error);
+			onSessionCreated(error);
 		}
 
 		void Session::login(String^ username, String^ password) {
@@ -192,11 +202,112 @@ namespace Luna {
 					unmanagedPointer = nullptr;
 
 					SessionStopped(this, gcnew EventArgs());
+					onSessionReleased();
 				} finally {
 					Monitor::Exit(processLock);
 				}
 			}
 		}
+
+		/** private **/
+		
+		int Session::deliver(const sp_audioformat *format, const void *frames, int num_frames) {
+			if (num_frames > 0) {
+				AudioFormat^ audioFormat = gcnew AudioFormat(format);
+				int bufferLength = num_frames * audioFormat->Channels;
+				if (deliveryBufferSize < bufferLength) {
+					deliveryBufferSize = bufferLength;
+					deliveryBuffer = gcnew array<short>(deliveryBufferSize);
+				}
+				Marshal::Copy(IntPtr((void*)frames), deliveryBuffer, 0, deliveryBufferSize);
+
+				return onMusicDelivery(audioFormat, deliveryBuffer, num_frames);	
+			}
+
+			return 0;
+		}
+
+		/** player **/
+
+		void Session::playerLoad(Track^ track) {
+			sp_error error = sp_session_player_load(unmanagedPointer, track->getPlayable(unmanagedPointer));
+			if (error != sp_error::SP_ERROR_OK) {
+				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
+				throw gcnew Exception(String::Format("Could not load track: {0}", errorCode));
+			}
+		}
+
+		void Session::playerPlay(bool play) {
+			sp_error error = sp_session_player_play(unmanagedPointer, play);
+			if (error != sp_error::SP_ERROR_OK) {
+				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
+				throw gcnew Exception(String::Format("Could not play/pause track: {0}", errorCode));
+			}
+		}
+
+		void Session::playerPrefetch(Track^ track) {
+			sp_error error = sp_session_player_prefetch(unmanagedPointer, track->getPlayable(unmanagedPointer));
+			if (error != sp_error::SP_ERROR_OK) {
+				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
+				throw gcnew Exception(String::Format("Could not prefetch track: {0}", errorCode));
+			}
+		}
+
+		void Session::playerSeek(TimeSpan offset) {
+			sp_error error = sp_session_player_seek(unmanagedPointer, (int)offset.TotalMilliseconds);
+			if (error != sp_error::SP_ERROR_OK) {
+				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
+				throw gcnew Exception(String::Format("Could not seek track: {0}", errorCode));
+			}
+		}
+
+		void Session::playerUnload() {
+			sp_error error = sp_session_player_unload(unmanagedPointer);
+			if (error != sp_error::SP_ERROR_OK) {
+				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
+				throw gcnew Exception(String::Format("Could not unload track: {0}", errorCode));
+			}
+		}
+		
+		/** virtual **/
+		void Session::onSessionCreated(SpErrorCode errorcode){
+
+		}
+
+		void Session::onSessionReleased(){
+
+		}
+
+		void Session::onLoggedIn(SpErrorCode errorcode){
+
+		}
+
+		void Session::onConnectionError(SpErrorCode errorcode){
+
+		}
+
+		void Session::onLoggedOut(){
+
+		}
+		/*
+		int Session::onMusicDelivery(AudioFormat^ audioFormat, array<short>^ pcmData, int numFrames){
+
+		}
+		*/
+		void Session::onPlayTokenLost(){
+
+		}
+
+		void Session::onEndOfTrack(){
+
+		}
+
+		
+		void Session::onLogMessage(String^ message){
+
+		}
+
+		/** events handlers **/
 
 		void Session::notifyMainThread(sp_session* session) {
 			int sessionPtr = (int)session;
@@ -213,7 +324,19 @@ namespace Luna {
 
 			if (Session::sessionTable->ContainsKey(sessionPtr)){
 				Session^ managedSession = Session::sessionTable[sessionPtr];
-				managedSession->ConnectionError(managedSession, static_cast<SpErrorCode>(errorCode));
+
+				SpErrorCode error = static_cast<SpErrorCode>(errorCode);
+				managedSession->ConnectionError(managedSession, error);
+				managedSession->onConnectionError(error);
+			}
+		}
+
+		int Session::raiseOnMusicDelivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				return managedSession->deliver(format, frames, num_frames);
 			}
 		}
 
@@ -230,7 +353,28 @@ namespace Luna {
 					managedSession->ActiveUser = nullptr;
 				}
 
-				managedSession->LoggedIn(managedSession, static_cast<SpErrorCode>(errorCode));
+				SpErrorCode error = static_cast<SpErrorCode>(errorCode);
+				managedSession->LoggedIn(managedSession, error);
+				managedSession->onLoggedIn(error);
+			}
+		}
+
+		void Session::raisePlayTokenLost(sp_session* session){
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+
+				managedSession->onPlayTokenLost();
+			}
+		}
+
+		void Session::raiseEndOfTrack(sp_session* session){
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onEndOfTrack();
 			}
 		}
 
@@ -241,6 +385,7 @@ namespace Luna {
 				Session^ managedSession = Session::sessionTable[sessionPtr];
 				managedSession->ActiveUser = nullptr;
 				managedSession->LoggedOut(managedSession, gcnew EventArgs());
+				managedSession->onLoggedOut();
 			}
 		}
 
@@ -250,6 +395,7 @@ namespace Luna {
 			if (Session::sessionTable->ContainsKey(sessionPtr)){
 				Session^ managedSession = Session::sessionTable[sessionPtr];
 				managedSession->LogMessage(managedSession, InteropUtilities::convertToString(message));
+				managedSession->onLogMessage(InteropUtilities::convertToString(message));
 			}
 		}
 	}

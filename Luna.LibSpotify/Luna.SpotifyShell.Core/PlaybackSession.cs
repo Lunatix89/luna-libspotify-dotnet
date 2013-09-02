@@ -5,22 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Luna.LibSpotify;
+using System.IO;
 
 namespace Luna.SpotifyShell {
-	public class SessionController {
-		private Session session;
-		private bool hasValidSession;
-		private bool isLoggedIn;
-
-		public bool IsLoggedIn {
-			get { return isLoggedIn; }
-			private set { isLoggedIn = value; }
-		}
-
-		public bool HasValidSession {
-			get { return hasValidSession; }
-			private set { hasValidSession = value; }
-		}
+	public class PlaybackSession  : Session {
+		private readonly object streamLock = new object();
+		private Stream playbackStream;
+		private BinaryWriter playbackWriter;
 
 		private byte[] g_appkey = new byte[]{
 			0x01, 0xFE, 0x04, 0x6B, 0x34, 0xDB, 0xA0, 0x0C, 0xBC, 0x35, 0xDE, 0x2A, 0xCB, 0x98, 0xD3, 0xED,
@@ -46,74 +37,70 @@ namespace Luna.SpotifyShell {
 			0x3A,
 		};
 
-		public SessionController() {
-			session = new Session();
-			session.SessionConfig.ApplicationKey = g_appkey;
-			session.SessionConfig.UserAgent = "SpotifyCmdService";
-			session.LoggedIn += onLoggedIn;
-			session.LogMessage += onLogMessage;
-			session.LoggedOut += session_LoggedOut;
-			session.SessionCreated += session_SessionCreated;
-			session.SessionStopped += session_SessionStopped;
+		public Stream PlaybackStream {
+			get { return playbackStream; }
+			set {
+				lock (streamLock) {
+					playbackStream = value;
+					playbackWriter = new BinaryWriter(playbackStream, Encoding.Default, true);
+				}
+			}
 		}
 
-		void session_SessionStopped(object sender, EventArgs e) {
-			Logger.Instance.log("Spotify session released");
-			HasValidSession = false;
+		public PlaybackSession() {
+			SessionConfig.ApplicationKey = g_appkey;
+			SessionConfig.UserAgent = "SpotifyCmdService";
 		}
 
-		void session_SessionCreated(object sender, SpErrorCode e) {
-			if (e == SpErrorCode.Ok) {
-				HasValidSession = true;
+		public override void onSessionCreated(SpErrorCode errorcode) {
+			base.onSessionCreated(errorcode);
+
+			if (errorcode == SpErrorCode.Ok) {
 				Logger.Instance.log("Spotify session successfully created");
 			} else {
-				HasValidSession = false;
-				Logger.Instance.log("Could not create spotify session: {0}", e);
+				Logger.Instance.log("Could not create spotify session: {0}", errorcode);
 			}
 		}
 
-		void session_LoggedOut(object sender, EventArgs e) {
-			Logger.Instance.log("User logged out.");
-			IsLoggedIn = false;
-		}
+		public override void onLoggedIn(SpErrorCode errorcode) {
+			base.onLoggedIn(errorcode);
 
-		void onLogMessage(object sender, string e) {
-			Logger.Instance.log(e);
-		}
-
-		void onLoggedIn(object sender, SpErrorCode e) {
-			if (e == SpErrorCode.Ok) {
-				IsLoggedIn = true;
+			if (errorcode == SpErrorCode.Ok) {
 				Logger.Instance.log("User successfully logged in.");
 			} else {
-				Logger.Instance.log("User failed to log in: {0}.", e);
+				Logger.Instance.log("User failed to log in: {0}.", errorcode);
 			}
 		}
 
-		public void createSession() {
-			if (!HasValidSession) {
-				session.createSession();
+		public override void onLoggedOut() {
+			base.onLoggedOut();
+
+			Logger.Instance.log("User logged out.");
+		}
+
+		public override void onSessionReleased() {
+			base.onSessionReleased();
+
+			Logger.Instance.log("Spotify session released");
+		}
+
+		public override void onLogMessage(string message) {
+			base.onLogMessage(message);
+
+			Logger.Instance.log(message);
+		}
+
+		public override int onMusicDelivery(AudioFormat audioFormat, short[] pcmData, int numFrames) {
+			if (playbackStream != null) {
+				lock (streamLock) {
+					for (int n = 0; n < pcmData.Length; n++) {
+						playbackWriter.Write(pcmData[n]);
+					}
+
+				}
 			}
+
+			return numFrames;
 		}
-
-		public void login(string username, string password) {
-			session.login(username, password);
-		}
-
-		public void logout() {
-			if (HasValidSession) {
-				session.logout();
-			}
-		}
-
-		public void stopSession() {
-			if ((HasValidSession) && (session != null)) {
-				session.releaseSession();
-
-			}
-
-			HasValidSession = false;
-		}
-
 	}
 }

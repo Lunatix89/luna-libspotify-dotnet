@@ -36,8 +36,10 @@ namespace Luna {
 				String^ Password;
 		};
 
+		ref class Track;
 		ref class User;
-		public ref class Session {
+		ref struct AudioFormat;
+		public ref class Session abstract {
 		internal:
 			sp_session* unmanagedPointer;
 			static Dictionary<int, Session^>^ sessionTable = gcnew Dictionary<int, Session^>();
@@ -48,11 +50,16 @@ namespace Luna {
 				}
 			}
 
+			static int raiseOnMusicDelivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames);
+			static void raisePlayTokenLost(sp_session* session);
+			static void raiseEndOfTrack(sp_session* session);
 			static void raiseLoggedIn(sp_session* session, sp_error errorCode);
 			static void raiseLoggedOut(sp_session* session);
 			static void raiseLogMessage(sp_session* session, const char* data);
 			static void raiseConnectionError(sp_session* session, sp_error errorCode);
 			static void notifyMainThread(sp_session* session);
+			static const int initialDeliveryBufferSize = 1024;
+
 		private:
 			bool isDisposed;
 			SessionState^ state;
@@ -64,7 +71,8 @@ namespace Luna {
 			Object^ processLock;
 			List<ActionInfo^>^ actionStack;
 			User^ activeUser;
-
+			array<short>^ deliveryBuffer;
+			int deliveryBufferSize;
 
 			void sessionRunner(Object^ state);
 			
@@ -74,6 +82,7 @@ namespace Luna {
 			void loginInternal(Object^ arg);
 			void logoutInternal();
 			void releaseSessionInternal();
+			int deliver(const sp_audioformat *format, const void *frames, int num_frames);
 		public:
 			Session();
 			~Session();
@@ -99,6 +108,22 @@ namespace Luna {
 			void login(String^ username, String^ password);
 			void logout();
 			void releaseSession();
+
+			void playerLoad(Track^ track);
+			void playerPlay(bool play);
+			void playerPrefetch(Track^ track);
+			void playerSeek(TimeSpan offset);
+			void playerUnload();
+
+			virtual void onSessionCreated(SpErrorCode errorcode);
+			virtual void onSessionReleased();
+			virtual void onLoggedIn(SpErrorCode errorcode);
+			virtual void onConnectionError(SpErrorCode errorcode);
+			virtual void onLoggedOut();
+			virtual int onMusicDelivery(AudioFormat^ audioFormat, array<short>^ pcmData, int numFrames) = 0;
+			virtual void onPlayTokenLost();
+			virtual void onEndOfTrack();
+			virtual void onLogMessage(String^ message);
 
 			property LibSpotify::SessionConfig^ SessionConfig {
 				LibSpotify::SessionConfig^ get(){
