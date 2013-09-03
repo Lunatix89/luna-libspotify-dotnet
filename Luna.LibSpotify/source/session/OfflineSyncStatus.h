@@ -11,87 +11,87 @@ namespace Luna {
 	namespace LibSpotify {
 		public ref struct OfflineSyncStatus {
 		internal:
-			sp_offline_sync_status* unmanagedPointer;
+			sp_offline_sync_status* audioformat;
 
 		public:
 			property UInt64 CopiedBytes {
 				UInt64 get(){
-					return unmanagedPointer->copied_bytes;
+					return audioformat->copied_bytes;
 				}
 				void set(UInt64 value){
-					unmanagedPointer->copied_bytes = value;
+					audioformat->copied_bytes = value;
 				}
 			}
 			
 			property int CopiedTracks {
 				int get(){
-					return unmanagedPointer->copied_tracks;
+					return audioformat->copied_tracks;
 				}
 				void set(int value){
-					unmanagedPointer->copied_tracks = value;
+					audioformat->copied_tracks = value;
 				}
 			}
 
 			property UInt64 DoneBytes {
 				UInt64 get(){
-					return unmanagedPointer->done_bytes;
+					return audioformat->done_bytes;
 				}
 				void set(UInt64 value){
-					unmanagedPointer->done_bytes = value;
+					audioformat->done_bytes = value;
 				}
 			}
 
 			property int DoneTracks {
 				int get(){
-					return unmanagedPointer->done_tracks;
+					return audioformat->done_tracks;
 				}
 				void set(int value){
-					unmanagedPointer->done_tracks = value;
+					audioformat->done_tracks = value;
 				}
 			}
 
 			property int ErrorTracks {
 				int get(){
-					return unmanagedPointer->error_tracks;
+					return audioformat->error_tracks;
 				}
 				void set(int value){
-					unmanagedPointer->error_tracks = value;
+					audioformat->error_tracks = value;
 				}
 			}
 
 			property int QueuedTracks {
 				int get(){
-					return unmanagedPointer->queued_tracks;
+					return audioformat->queued_tracks;
 				}
 				void set(int value){
-					unmanagedPointer->queued_tracks = value;
+					audioformat->queued_tracks = value;
 				}
 			}
 
 			property UInt64 QueuedBytes{
 				UInt64 get(){
-					return unmanagedPointer->queued_bytes;
+					return audioformat->queued_bytes;
 				}
 				void set(UInt64 value){
-					unmanagedPointer->queued_bytes = value;
+					audioformat->queued_bytes = value;
 				}
 			}
 			
 			property bool IsSyncing {
 				bool get(){
-					return unmanagedPointer->syncing;
+					return audioformat->syncing;
 				}
 				void set(bool value){
-					unmanagedPointer->syncing = value;
+					audioformat->syncing = value;
 				}
 			}
 
 			property int WillNotCopyTracks {
 				int get(){
-					return unmanagedPointer->willnotcopy_tracks;
+					return audioformat->willnotcopy_tracks;
 				}
 				void set(int value){
-					unmanagedPointer->willnotcopy_tracks = value;
+					audioformat->willnotcopy_tracks = value;
 				}
 			}
 		};

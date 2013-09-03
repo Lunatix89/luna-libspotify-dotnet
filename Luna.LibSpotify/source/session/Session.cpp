@@ -18,7 +18,7 @@ namespace Luna {
 			processLock = gcnew Object();
 			processEvent = gcnew AutoResetEvent(false);
 			nextEventCall = 0;
-			unmanagedPointer = nullptr;
+			session = nullptr;
 			sessionConfig = gcnew LibSpotify::SessionConfig();
 			sessionTask = gcnew Task(gcnew Action<Object^>(this, &Session::sessionRunner), gcnew Object(), CancellationToken::None, System::Threading::Tasks::TaskCreationOptions::LongRunning);
 			sessionTask->Start(TaskScheduler::Default);
@@ -29,8 +29,8 @@ namespace Luna {
 		Session::~Session(){
 			isDisposed = true;
 
-			if (unmanagedPointer != nullptr){
-				delete unmanagedPointer;
+			if (session != nullptr){
+				delete session;
 			}
 		}
 
@@ -75,11 +75,11 @@ namespace Luna {
 				}
 
 				if (!state->Equals(SessionState::None)) {
-					if ((Environment::TickCount >= nextEventCall) && (unmanagedPointer != nullptr)) {
+					if ((Environment::TickCount >= nextEventCall) && (session != nullptr)) {
 						Monitor::Enter(processLock);
 						try{
 							int nextCall = 0;
-							sp_session_process_events(unmanagedPointer, &nextCall);
+							sp_session_process_events(session, &nextCall);
 							nextEventCall = nextCall / 1000;
 						} finally {
 							Monitor::Exit(processLock);
@@ -131,8 +131,8 @@ namespace Luna {
 
 		void Session::createSessionInternal() {
 			sp_session* sp;
-			sp_error errorCode = sp_session_create(sessionConfig->unmanagedPointer, &sp);
-			unmanagedPointer = sp;
+			sp_error errorCode = sp_session_create(sessionConfig->sessionConfig, &sp);
+			session = sp;
 
 			switch(errorCode){
 				case sp_error::SP_ERROR_OK:
@@ -166,7 +166,7 @@ namespace Luna {
 				const char* user = InteropUtilities::convertToCString(userInfo->Username);
 				const char* passwd = InteropUtilities::convertToCString(userInfo->Password);
 
-				sp_error error = sp_session_login(unmanagedPointer, user, passwd, false, nullptr);
+				sp_error error = sp_session_login(session, user, passwd, false, nullptr);
 			}
 		}
 
@@ -175,12 +175,12 @@ namespace Luna {
 		}
 
 		void Session::logoutInternal() {
-			if (unmanagedPointer != nullptr) {
+			if (session != nullptr) {
 				Monitor::Enter(processLock);
 				try{
-					sp_user_release(ActiveUser->unmanagedPointer);
-					sp_error result = sp_session_logout(unmanagedPointer);
-					sp_connectionstate state = sp_session_connectionstate(unmanagedPointer);
+					sp_user_release(ActiveUser->user);
+					sp_error result = sp_session_logout(session);
+					sp_connectionstate state = sp_session_connectionstate(session);
 
 					nextEventCall = 0;
 				} finally {
@@ -194,12 +194,12 @@ namespace Luna {
 		}
 
 		void Session::releaseSessionInternal() {
-			if (unmanagedPointer != nullptr){
+			if (session != nullptr){
 				Monitor::Enter(processLock);
 				try{
 					sessionTable->Remove(sessionId);
-					sp_session_release(unmanagedPointer);
-					unmanagedPointer = nullptr;
+					sp_session_release(session);
+					session = nullptr;
 
 					SessionStopped(this, gcnew EventArgs());
 					onSessionReleased();
@@ -230,7 +230,7 @@ namespace Luna {
 		/** player **/
 
 		void Session::playerLoad(Track^ track) {
-			sp_error error = sp_session_player_load(unmanagedPointer, track->getPlayable(unmanagedPointer));
+			sp_error error = sp_session_player_load(session, track->getPlayable(session));
 			if (error != sp_error::SP_ERROR_OK) {
 				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
 				throw gcnew Exception(String::Format("Could not load track: {0}", errorCode));
@@ -238,7 +238,7 @@ namespace Luna {
 		}
 
 		void Session::playerPlay(bool play) {
-			sp_error error = sp_session_player_play(unmanagedPointer, play);
+			sp_error error = sp_session_player_play(session, play);
 			if (error != sp_error::SP_ERROR_OK) {
 				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
 				throw gcnew Exception(String::Format("Could not play/pause track: {0}", errorCode));
@@ -246,7 +246,7 @@ namespace Luna {
 		}
 
 		void Session::playerPrefetch(Track^ track) {
-			sp_error error = sp_session_player_prefetch(unmanagedPointer, track->getPlayable(unmanagedPointer));
+			sp_error error = sp_session_player_prefetch(session, track->getPlayable(session));
 			if (error != sp_error::SP_ERROR_OK) {
 				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
 				throw gcnew Exception(String::Format("Could not prefetch track: {0}", errorCode));
@@ -254,7 +254,7 @@ namespace Luna {
 		}
 
 		void Session::playerSeek(TimeSpan offset) {
-			sp_error error = sp_session_player_seek(unmanagedPointer, (int)offset.TotalMilliseconds);
+			sp_error error = sp_session_player_seek(session, (int)offset.TotalMilliseconds);
 			if (error != sp_error::SP_ERROR_OK) {
 				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
 				throw gcnew Exception(String::Format("Could not seek track: {0}", errorCode));
@@ -262,7 +262,7 @@ namespace Luna {
 		}
 
 		void Session::playerUnload() {
-			sp_error error = sp_session_player_unload(unmanagedPointer);
+			sp_error error = sp_session_player_unload(session);
 			if (error != sp_error::SP_ERROR_OK) {
 				SpErrorCode errorCode = static_cast<SpErrorCode>(error);
 				throw gcnew Exception(String::Format("Could not unload track: {0}", errorCode));
@@ -347,7 +347,7 @@ namespace Luna {
 				Session^ managedSession = Session::sessionTable[sessionPtr];
 				
 				if (errorCode == sp_error::SP_ERROR_OK) {
-					sp_user* user = sp_session_user(managedSession->unmanagedPointer);
+					sp_user* user = sp_session_user(managedSession->session);
 					managedSession->ActiveUser = gcnew User(user);
 				} else {
 					managedSession->ActiveUser = nullptr;

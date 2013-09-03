@@ -113,19 +113,19 @@ namespace Luna {
 		}
 
 
-		SessionConfig::SessionConfig(sp_session_config* unmanagedPointer){
-			this->unmanagedPointer = unmanagedPointer;
+		SessionConfig::SessionConfig(sp_session_config* sessionConfig){
+			this->sessionConfig = sessionConfig;
 			init();
 		}
 
 		SessionConfig::SessionConfig(){
-			unmanagedPointer = new sp_session_config();
+			sessionConfig = new sp_session_config();
 			init();
 		}
 
 		SessionConfig::~SessionConfig(){
-			if (unmanagedPointer != nullptr){
-				delete unmanagedPointer;
+			if (sessionConfig != nullptr){
+				delete sessionConfig;
 			}
 			if (callbacks != nullptr){
 				delete callbacks;
@@ -135,7 +135,7 @@ namespace Luna {
 		void SessionConfig::init(){
 			callbacks = new sp_session_callbacks();
 			memset(callbacks, 0, sizeof(sp_session_callbacks));
-			memset(unmanagedPointer, 0, sizeof(sp_session_config));
+			memset(sessionConfig, 0, sizeof(sp_session_config));
 
 			// Register the callbacks.
 			callbacks->logged_in = logged_in;
@@ -154,11 +154,11 @@ namespace Luna {
 			callbacks->scrobble_error = scrobble_error;
 			callbacks->private_session_mode_changed = private_session_mode_changed;
 
-			unmanagedPointer->api_version = SPOTIFY_API_VERSION;
-			unmanagedPointer->cache_location = "tmp";
-			unmanagedPointer->settings_location = "tmp";
-			unmanagedPointer->callbacks = callbacks;
-			unmanagedPointer->proxy = "";
+			sessionConfig->api_version = SPOTIFY_API_VERSION;
+			sessionConfig->cache_location = "tmp";
+			sessionConfig->settings_location = "tmp";
+			sessionConfig->callbacks = callbacks;
+			sessionConfig->proxy = "";
 		}
 
 	}

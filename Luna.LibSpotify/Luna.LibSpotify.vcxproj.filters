@@ -104,5 +104,23 @@
     <ClInclude Include="source\links\Link.h">
       <Filter>source\links</Filter>
     </ClInclude>
+    <ClInclude Include="source\playlist\Playlist.h">
+      <Filter>source\playlist</Filter>
+    </ClInclude>
+    <ClInclude Include="source\album\Album.h">
+      <Filter>source\album</Filter>
+    </ClInclude>
+    <ClInclude Include="source\artist\Artist.h">
+      <Filter>source\artist</Filter>
+    </ClInclude>
+    <ClInclude Include="source\image\Image.h">
+      <Filter>source\image</Filter>
+    </ClInclude>
+    <ClInclude Include="source\search\Search.h">
+      <Filter>source\search</Filter>
+    </ClInclude>
+    <ClInclude Include="source\artist\ArtistBrowse.h">
+      <Filter>source\artist</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -42,14 +42,14 @@ namespace Luna {
 
 			bool isLocal(Session^ session) {
 				if ((session != nullptr) && (track != nullptr)) {
-					return track != nullptr ? sp_track_is_local(session->unmanagedPointer, track) : false;
+					return track != nullptr ? sp_track_is_local(session->session, track) : false;
 				}
 				return false;
 			}
 
 			bool isPlayable(Session^ session) {
 				if ((session != nullptr) && (track != nullptr)) {
-					return track != nullptr ? sp_track_is_local(session->unmanagedPointer, track) : false;
+					return track != nullptr ? sp_track_is_local(session->session, track) : false;
 				}
 				return false;
 			}

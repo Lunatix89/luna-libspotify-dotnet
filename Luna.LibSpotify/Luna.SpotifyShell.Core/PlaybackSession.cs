@@ -54,6 +54,10 @@ namespace Luna.SpotifyShell {
 			}
 		}
 
+		public override void onEndOfTrack() {
+			base.onEndOfTrack();
+		}
+
 		public override void onLoggedOut() {
 			base.onLoggedOut();
 

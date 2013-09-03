@@ -126,5 +126,32 @@ namespace Luna {
 			GlobalEnabled = 3,
 			GlobalDisabled = 4,
 		};
+		
+		/// <summary>
+		/// Link types 
+		/// </summmry>
+		public enum class LinkType {
+			// Link type is album
+			Album = sp_linktype::SP_LINKTYPE_ALBUM,
+			// Link type is artist
+			Artist = sp_linktype::SP_LINKTYPE_ARTIST,
+			// Link type is an image
+			Image = sp_linktype::SP_LINKTYPE_IMAGE,
+			// Link type not valid - default until the library has parsed the link, or when parsing failed
+			Invalid = sp_linktype::SP_LINKTYPE_INVALID,
+			// Link type is a local file
+			LocalTrack = sp_linktype::SP_LINKTYPE_LOCALTRACK,
+			// Link type is playlist
+			Playlist = sp_linktype::SP_LINKTYPE_PLAYLIST,
+			// Link type is profile
+			Profile = sp_linktype::SP_LINKTYPE_PROFILE,
+			// Link type is search
+			Search = sp_linktype::SP_LINKTYPE_SEARCH,
+			// Link type is starred
+			Starred = sp_linktype::SP_LINKTYPE_STARRED,
+			// Link type is track
+			Track = sp_linktype::SP_LINKTYPE_TRACK,
+
+		};
 	}
 }

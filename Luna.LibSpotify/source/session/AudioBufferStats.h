@@ -10,25 +10,25 @@ namespace Luna {
 	namespace LibSpotify {
         public ref struct AudioBufferStats {
 		internal:
-			sp_audio_buffer_stats* nativeStruct;
+			sp_audio_buffer_stats* stats;
 
 		public:
 			property int Samples {
 				int get(){
-					return nativeStruct->samples;
+					return stats->samples;
 				}
 
 				void set(int value){
-					nativeStruct->samples = value;
+					stats->samples = value;
 				}
 			}
 
             property int Stutter{
 				int get(){
-					return nativeStruct->stutter;
+					return stats->stutter;
 				}
 				void set(int value){
-					nativeStruct->stutter = value;
+					stats->stutter = value;
 				}
 			}
         };

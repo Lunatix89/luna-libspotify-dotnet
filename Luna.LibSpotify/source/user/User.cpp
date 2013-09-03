@@ -5,8 +5,12 @@ using namespace System;
 namespace Luna {
 	namespace LibSpotify {
 
+		User::User() {
+			user = nullptr;
+		}
+
 		User::User(sp_user* user) {
-			unmanagedPointer = user;
+			this->user = user;
 		}
 
 		User::~User(){

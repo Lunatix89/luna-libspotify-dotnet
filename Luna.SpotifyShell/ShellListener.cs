@@ -122,6 +122,7 @@ namespace Luna.SpotifyShell {
 							track = link.asTrack();
 						} else {
 							Link link = Link.createFromString(args[2]);
+							
 							track = link.asTrack();
 
 							/*

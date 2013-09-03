@@ -12,7 +12,7 @@ namespace Luna {
 	namespace LibSpotify {
 		public ref struct AudioFormat {
 		internal:
-			const sp_audioformat* unmanagedPointer;
+			const sp_audioformat* audioformat;
 		//	AudioFormat(sp_audioformat* audioFormat);
 			AudioFormat(const sp_audioformat* format);
 		public:
@@ -21,7 +21,7 @@ namespace Luna {
 
 			property LibSpotify::SampleType SampleType{
 				LibSpotify::SampleType get(){
-					return static_cast<LibSpotify::SampleType>(unmanagedPointer->sample_type);
+					return static_cast<LibSpotify::SampleType>(audioformat->sample_type);
 				}
 			//	void set(LibSpotify::SampleType value){
 			//		unmanagedPointer->sample_type = static_cast<sp_sampletype>(value);
@@ -30,7 +30,7 @@ namespace Luna {
 
 			property int SampleRate{
 				int get(){
-					return unmanagedPointer->sample_rate;
+					return audioformat->sample_rate;
 				}
 			//	void set(int value){
 			//		unmanagedPointer->sample_rate = value;
@@ -39,7 +39,7 @@ namespace Luna {
 
 			property int Channels {
 				int get(){
-					return unmanagedPointer->channels;
+					return audioformat->channels;
 				}
 			//	void set(int value){
 			//		unmanagedPointer->channels = value;

@@ -41,7 +41,7 @@ namespace Luna {
 		ref struct AudioFormat;
 		public ref class Session abstract {
 		internal:
-			sp_session* unmanagedPointer;
+			sp_session* session;
 			static Dictionary<int, Session^>^ sessionTable = gcnew Dictionary<int, Session^>();
 
 			property int SessionId {

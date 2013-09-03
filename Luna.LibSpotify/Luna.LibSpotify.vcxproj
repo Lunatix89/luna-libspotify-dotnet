@@ -22,9 +22,15 @@
     <ClCompile Include="source\user\User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\album\Album.h" />
+    <ClInclude Include="source\artist\Artist.h" />
+    <ClInclude Include="source\artist\ArtistBrowse.h" />
     <ClInclude Include="source\Enumerations.h" />
+    <ClInclude Include="source\image\Image.h" />
     <ClInclude Include="source\InteropUtilities.h" />
     <ClInclude Include="source\links\Link.h" />
+    <ClInclude Include="source\playlist\Playlist.h" />
+    <ClInclude Include="source\search\Search.h" />
     <ClInclude Include="source\session\AudioBufferStats.h" />
     <ClInclude Include="source\session\AudioFormat.h" />
     <ClInclude Include="source\session\OfflineSyncStatus.h" />
@@ -83,6 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

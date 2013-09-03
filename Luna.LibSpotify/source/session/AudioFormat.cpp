@@ -7,11 +7,11 @@ namespace Luna {
 	namespace LibSpotify {
 
 		AudioFormat::AudioFormat() {
-			this->unmanagedPointer = nullptr;
+			this->audioformat = nullptr;
 		}
 
 		AudioFormat::AudioFormat(const sp_audioformat* format) {
-			this->unmanagedPointer = (sp_audioformat*)format;
+			this->audioformat = (sp_audioformat*)format;
 		}
 
 		AudioFormat::~AudioFormat() {

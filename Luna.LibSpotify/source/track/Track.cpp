@@ -13,7 +13,7 @@ namespace Luna {
 		}
 
 		sp_track* Track::getPlayable(Session^ session){
-			return sp_track_get_playable(session->unmanagedPointer, track);
+			return sp_track_get_playable(session->session, track);
 		}
 
 		sp_track* Track::getPlayable(sp_session* session) {

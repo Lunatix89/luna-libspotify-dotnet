@@ -17,23 +17,23 @@ namespace Luna {
 		public ref class User {
 		internal:
 			User(sp_user* user);
-			sp_user* unmanagedPointer;
+			sp_user* user;
 
 		private:
-
+			User();
 		public:
 			~User();
 
 			property bool IsLoaded{
 				bool get() {
-					return sp_user_is_loaded(unmanagedPointer);
+					return sp_user_is_loaded(user);
 				}
 			}
 
 			property String^ CanonicalName{
 				String^ get() {
-					if (unmanagedPointer != nullptr) {
-						const char* name = sp_user_canonical_name(unmanagedPointer);
+					if (user != nullptr) {
+						const char* name = sp_user_canonical_name(user);
 						return gcnew String(name);
 					}
 
@@ -43,8 +43,8 @@ namespace Luna {
 
 			property String^ DisplayName {
 				String^ get(){
-					if (unmanagedPointer != nullptr) {
-						const char* name = sp_user_display_name(unmanagedPointer);
+					if (user != nullptr) {
+						const char* name = sp_user_display_name(user);
 						return gcnew String(name);
 					}
 
