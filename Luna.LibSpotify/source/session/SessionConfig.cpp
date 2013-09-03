@@ -22,7 +22,7 @@ namespace Luna {
 		 * @sa sp_session_callbacks#connection_error
 		 */
 		static void SP_CALLCONV connection_error(sp_session *session, sp_error error) {
-
+			Session::raiseConnectionError(session, error);
 		}
 
 		/**
@@ -49,17 +49,7 @@ namespace Luna {
 		 * @sa sp_session_callbacks#scrobble_error
 		 */
 		static void SP_CALLCONV scrobble_error(sp_session* session, sp_error error) {
-
-		}
-
-		/**
-		 * Called when there is a change in the private session mode
-		 *
-		 * @param[in]  session    Session
-		 * @param[in]  isPrivate  True if in private session, false otherwhise
-		 */
-		static void SP_CALLCONV private_session_mode_changed(sp_session *session, bool is_private) {
-
+			Session::raiseScrobbleError(session, error);
 		}
 
 		/**
@@ -69,7 +59,7 @@ namespace Luna {
 		 * @sa sp_session_callbacks#credentials_blob_updated
 		 */
 		static void SP_CALLCONV credentials_blob_updated(sp_session *session, const char *blob) {
-
+			return Session::raiseCredentialsBlobUpdated(session, blob);
 		}
 
 		/**
@@ -89,15 +79,15 @@ namespace Luna {
 		 *
 		 * @sa sp_session_callbacks#metadata_updated
 		 */
-		static void SP_CALLCONV metadata_updated(sp_session *sess) {
-
+		static void SP_CALLCONV metadata_updated(sp_session *session) {
+			return Session::raiseMetaDataUpdated(session);
 		}
 
 		/**
 		 *
 		 */
-		static void SP_CALLCONV offline_status_updated(sp_session *sess) {
-
+		static void SP_CALLCONV offline_status_updated(sp_session *session) {
+			return Session::raisOfflineStatusDataUpdated(session);
 		}
 
 		static int SP_CALLCONV music_delivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames) {
@@ -112,6 +102,40 @@ namespace Luna {
 			Session::raiseEndOfTrack(session);
 		}
 
+		void SP_CALLCONV connectionstate_updated (sp_session *session) {
+			Session::raiseConnectionStateUpdated(session);
+		}
+
+		/**
+		 * Called when there is a change in the private session mode
+		 *
+		 * @param[in]  session    Session
+		 * @param[in]  isPrivate  True if in private session, false otherwhise
+		 */
+		void SP_CALLCONV private_session_mode_changed (sp_session *session, bool is_private) {
+			Session::raisePrivateSessionModeChanged(session, is_private);
+		}
+
+		void SP_CALLCONV offline_error (sp_session *session, sp_error error) {
+			Session::raiseOfflineError(session, error);
+		}
+
+		void SP_CALLCONV userinfo_updated (sp_session *session) {
+			Session::raiseConnectionStateUpdated(session);
+		}
+
+		void SP_CALLCONV get_audio_buffer_stats (sp_session *session, sp_audio_buffer_stats *stats) {
+			Session::raiseGetAudioBufferStats(session, stats);
+		}
+
+		void SP_CALLCONV streaming_error (sp_session *session, sp_error error) {
+			Session::raiseStreamingError(session, error);
+
+		}
+
+		void SP_CALLCONV message_to_user (sp_session *session, const char *message) {
+			Session::raiseMessageToUser(session, message);
+		}
 
 		SessionConfig::SessionConfig(sp_session_config* sessionConfig){
 			this->sessionConfig = sessionConfig;
@@ -159,7 +183,18 @@ namespace Luna {
 			sessionConfig->settings_location = "tmp";
 			sessionConfig->callbacks = callbacks;
 			sessionConfig->proxy = "";
+
+			callbacks->connectionstate_updated = connectionstate_updated;
+			callbacks->get_audio_buffer_stats = get_audio_buffer_stats;
+			callbacks->message_to_user = message_to_user;
+			callbacks->offline_error = offline_error;
+			callbacks->streaming_error = streaming_error;
+			callbacks->userinfo_updated = userinfo_updated;
+
 		}
+
+
+
 
 	}
 }

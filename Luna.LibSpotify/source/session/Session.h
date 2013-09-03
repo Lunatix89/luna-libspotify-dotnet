@@ -4,6 +4,7 @@
 #include "SessionConfig.h"
 #include "../user/User.h";
 #include "../InteropUtilities.h";
+#include "AudioBufferStats.h"
 #include <stdint.h>
 
 using namespace System;
@@ -17,10 +18,9 @@ namespace Luna {
 	namespace LibSpotify {
 
 		public enum class SessionState {
-			None,
-			SessionCreated,
-			LoggedIn,
-			LoggedOut,
+			None = 0,
+			SessionCreated = 1,
+			LoggedIn = 2,
 		};
 
 		ref struct ActionInfo {
@@ -36,6 +36,8 @@ namespace Luna {
 				String^ Password;
 		};
 
+		ref class PlaylistContainer;
+		ref class Playlist;
 		ref class Track;
 		ref class User;
 		ref struct AudioFormat;
@@ -58,11 +60,22 @@ namespace Luna {
 			static void raiseLogMessage(sp_session* session, const char* data);
 			static void raiseConnectionError(sp_session* session, sp_error errorCode);
 			static void notifyMainThread(sp_session* session);
+			static void raiseMessageToUser(sp_session* session, const char* data);
+			static void raiseStreamingError(sp_session* session, sp_error errorCode);
+			static void raiseOfflineError(sp_session* session, sp_error errorCode);
+			static void raiseConnectionStateUpdated(sp_session* session);
+			static void raisePrivateSessionModeChanged(sp_session* session, bool is_private);
+			static void raiseGetAudioBufferStats(sp_session* session, sp_audio_buffer_stats *stats);
+			static void raiseMetaDataUpdated(sp_session* session);
+			static void raisOfflineStatusDataUpdated(sp_session* session);
+			static void raiseCredentialsBlobUpdated(sp_session* session, const char* blob);
+			static void raiseScrobbleError(sp_session* session, sp_error errorCode);
+			
 			static const int initialDeliveryBufferSize = 1024;
 
 		private:
 			bool isDisposed;
-			SessionState^ state;
+			SessionState state;
 			AutoResetEvent^ processEvent;
 			int nextEventCall;
 			Task^ sessionTask;
@@ -73,6 +86,7 @@ namespace Luna {
 			User^ activeUser;
 			array<short>^ deliveryBuffer;
 			int deliveryBufferSize;
+			LibSpotify::PlaylistContainer^ playlistContainer;
 
 			void sessionRunner(Object^ state);
 			
@@ -94,6 +108,18 @@ namespace Luna {
 			event EventHandler<String^>^ LogMessage;
 			event EventHandler<SpErrorCode>^ ConnectionError;
 
+			property bool IsSessionCreated {
+				bool get() {
+					return (state >= SessionState::SessionCreated);
+				}
+			}
+
+			property bool IsLoggedIn {
+				bool get() {
+					return (state >= SessionState::LoggedIn);
+				}
+			}
+
 			property User^ ActiveUser {
 				User^ get() {
 					return activeUser;
@@ -103,11 +129,105 @@ namespace Luna {
 					activeUser = value;
 				}
 			}
+			
+			
+			property bool IsPrivateSession {
+				bool get() {
+					if (session != nullptr) {
+						return sp_session_is_private_session(session);
+					}
+					return false;
+				}
+				void set(bool value) {
+					if (session != nullptr) {
+						sp_session_set_private_session(session, value);
+					}
+				}
+			}
 
+			property bool VolumeNormalization {
+				bool get() {
+					if (session != nullptr) {
+						return sp_session_get_volume_normalization(session);
+					}
+					return false;
+				}
+				void set(bool value) {
+					if (session != nullptr) {
+						sp_session_set_volume_normalization(session, value);
+					}
+				}
+			}
+
+			property int OfflineTracksToSync {
+				int get() {
+					if (session != nullptr) {
+						return sp_offline_tracks_to_sync(session);
+					}
+					return 0;
+				}
+			}
+
+			property int NumOfflinePlaylists {
+				int get() {
+					if (session != nullptr) {
+						return sp_offline_num_playlists(session);
+					}
+					return 0;
+				}
+			}
+
+			property TimeSpan OfflineTimeLeft {
+				TimeSpan get() {
+					if (session != nullptr) {
+						return TimeSpan::FromSeconds(sp_offline_time_left(session));
+					}
+					return TimeSpan::Zero;
+				}
+			}
+
+			property int UserCountry {
+				int get() {
+					if (session != nullptr) {
+						return sp_session_user_country(session);
+					}
+
+					return 0;
+				}
+			}
+
+			property LibSpotify::PlaylistContainer^ PlaylistContainer {
+				LibSpotify::PlaylistContainer^ get() {
+					return playlistContainer;
+				}
+				private:
+				void set(LibSpotify::PlaylistContainer^ value) {
+					playlistContainer = value;
+				}
+			}
+				
+			
 			void createSession();
 			void login(String^ username, String^ password);
-			void logout();
+			void logout();			
 			void releaseSession();
+
+			void forgetme();
+			void flushCaches();
+			void setCacheSize(int size);
+			void setPreferredBitrate(Bitrate bitrate);
+			void setPreferredBitrates(Bitrate onlineBitrate, Bitrate offlineBitrate, bool resynchronize);
+			void setPreferredOfflineBitrate(Bitrate bitrate, bool resynchronize);
+			void setConnectionRules(ConnectionRules connectionRules);
+			void setConnectionType(ConnectionType connectionType);
+			Playlist^ createInbox();
+			Playlist^ createStarred();
+			Playlist^ createStarredForUser(String^ userCanonicalName);
+			LibSpotify::PlaylistContainer^ createPublishedContainerForUser(String^ userCanonicalName);
+			void setScrobbling(SocialProvider provider, ScrobblingState state);
+			ScrobblingState getScrobblingState(SocialProvider provider);
+			bool isScrobblingPossible(SocialProvider provider);
+			void setScrobblingCredentials(SocialProvider provider, String^ username, String^ password);
 
 			void playerLoad(Track^ track);
 			void playerPlay(bool play);
@@ -124,6 +244,16 @@ namespace Luna {
 			virtual void onPlayTokenLost();
 			virtual void onEndOfTrack();
 			virtual void onLogMessage(String^ message);
+			virtual void onMessageToUser(String^ message);
+			virtual void onPrivateSessionModeChanged(bool isPrivate);
+			virtual void onGetAudioBufferStats(AudioBufferStats^ stats);
+			virtual void onMetaDataUpdated();
+			virtual void onStreamingError(SpErrorCode errorCode);
+			virtual void onOfflineError(SpErrorCode errorCode);
+			virtual void onConnectionStateUpdated();
+			virtual void onOfflineStatusDataUpdated();
+			virtual void onCredentialsBlobUpdated(String^ blob);
+			virtual void onScrobbleError(SpErrorCode errorCode);
 
 			property LibSpotify::SessionConfig^ SessionConfig {
 				LibSpotify::SessionConfig^ get(){

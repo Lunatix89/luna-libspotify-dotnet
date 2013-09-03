@@ -2,6 +2,8 @@
 #include <memory>
 #include "Session.h";
 #include "../track/Track.h"
+#include "../playlist/Playlist.h"
+#include "../playlist/PlaylistContainer.h"
 #include "AudioFormat.h"
 
 
@@ -126,6 +128,10 @@ namespace Luna {
 		/** session **/
 
 		void Session::createSession(){
+			if (state == SessionState::SessionCreated) {
+				throw gcnew Exception("Session is already created");
+			}
+
 			invoke(gcnew Action(this, &Session::createSessionInternal), false);
 		}
 
@@ -153,11 +159,15 @@ namespace Luna {
 		}
 
 		void Session::login(String^ username, String^ password) {
-			UserInfo^ userInfo = gcnew UserInfo();
-			userInfo->Username = username;
-			userInfo->Password = password;
+			if (state < SessionState::LoggedIn) {			
+				UserInfo^ userInfo = gcnew UserInfo();
+				userInfo->Username = username;
+				userInfo->Password = password;
 
-			invoke(gcnew Action<Object^>(this, &Session::loginInternal), userInfo, true);
+				invoke(gcnew Action<Object^>(this, &Session::loginInternal), userInfo, true);
+			} else {
+				throw gcnew Exception("Could not log in: Actual user must be logged out before loggin in again.");
+			}
 		}
 
 		void Session::loginInternal(Object^ arg) {
@@ -171,7 +181,11 @@ namespace Luna {
 		}
 
 		void Session::logout(){
-			invoke(gcnew Action(this, &Session::logoutInternal), false);
+			if (state >= SessionState::LoggedIn) {			
+				invoke(gcnew Action(this, &Session::logoutInternal), false);
+			} else {
+				throw gcnew Exception("Could not log out: No user is logged in.");
+			}
 		}
 
 		void Session::logoutInternal() {
@@ -190,7 +204,11 @@ namespace Luna {
 		}
 		
 		void Session::releaseSession(){
-			invoke(gcnew Action(this, &Session::releaseSessionInternal), false);
+			if (state >= SessionState::SessionCreated) {
+				invoke(gcnew Action(this, &Session::releaseSessionInternal), false);
+			} else {
+				throw gcnew Exception("Session could not be released: No session created");
+			}
 		}
 
 		void Session::releaseSessionInternal() {
@@ -204,8 +222,217 @@ namespace Luna {
 					SessionStopped(this, gcnew EventArgs());
 					onSessionReleased();
 				} finally {
+					state = SessionState::None;
 					Monitor::Exit(processLock);
 				}
+			}
+		}
+
+		void Session::forgetme() {
+			if (state >= SessionState::SessionCreated) {
+				sp_session_forget_me(session);
+			} else {
+				throw gcnew Exception("Could not call function: No session created");
+			}
+		}
+
+		void Session::flushCaches() {
+			if (state >= SessionState::SessionCreated) {
+				sp_session_flush_caches(session);
+			} else {
+				throw gcnew Exception("Could not call function: No session created");
+			}
+		}
+
+		void Session::setCacheSize(int size) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_set_cache_size(session, size);
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set cache size: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set cache size: No session created");
+			}
+		}
+
+		void Session::setPreferredBitrate(Bitrate bitrate) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_preferred_bitrate(session, static_cast<sp_bitrate>(bitrate));
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set preferred bitrate: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set preferred bitrate: No session created");
+			}
+		}
+
+		void Session::setPreferredOfflineBitrate(Bitrate bitrate, bool resynchronize) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_preferred_offline_bitrate(session, static_cast<sp_bitrate>(bitrate), resynchronize);
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set preferred offline bitrate: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set preferred offline bitrate: No session created");
+			}
+		}
+		
+		void Session::setPreferredBitrates(Bitrate onlineBitrate, Bitrate offlineBitrate, bool resynchronize) {
+			setPreferredBitrate(onlineBitrate);
+			setPreferredOfflineBitrate(offlineBitrate, resynchronize);
+		}
+
+		void Session::setScrobbling(SocialProvider provider, ScrobblingState scrobblingState) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_set_scrobbling(session, static_cast<sp_social_provider>(provider), static_cast<sp_scrobbling_state>(scrobblingState));
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set scrobbling state: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set set scrobbling state: No session created");
+			}
+		}
+
+		ScrobblingState Session::getScrobblingState(SocialProvider provider) {
+			if (state >= SessionState::SessionCreated) {
+				sp_scrobbling_state scrobblingState;
+				sp_error error = sp_session_is_scrobbling(session, static_cast<sp_social_provider>(provider), &scrobblingState);
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not obtain scrobbling state: {0}", static_cast<SpErrorCode>(error)));
+				}
+
+				return static_cast<ScrobblingState>(state);
+			} else {
+				throw gcnew Exception("Could not set obtain state: No session created");
+			}
+		}
+
+		bool Session::isScrobblingPossible(SocialProvider provider) {
+			if (state >= SessionState::SessionCreated) {
+				bool possible;
+				sp_error error = sp_session_is_scrobbling_possible(session, static_cast<sp_social_provider>(provider), &possible);
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not obtain scrobbling possibility: {0}", static_cast<SpErrorCode>(error)));
+				}
+
+				return possible;
+			} else {
+				throw gcnew Exception("Could not obtain scrobbling possibility: No session created");
+			}
+		}
+
+		void Session::setScrobblingCredentials(SocialProvider provider, String^ username, String^ password) {
+			if (state >= SessionState::SessionCreated) {
+				if ((!String::IsNullOrEmpty(username)) && (!String::IsNullOrEmpty(password))) {
+					const char* cstr_user = InteropUtilities::convertToCString(username);
+					const char* cstr_password = InteropUtilities::convertToCString(password);
+
+					sp_error error = sp_session_set_social_credentials(session, static_cast<sp_social_provider>(provider), cstr_user, cstr_password);
+					delete cstr_user;
+					delete cstr_password;
+
+					if (error != sp_error::SP_ERROR_OK) {
+						throw gcnew Exception(String::Format("Could not obtain scrobbling possibility: {0}", static_cast<SpErrorCode>(error)));
+					}
+				} else {
+					throw gcnew Exception("Username and password must not be null or empty.");
+				}
+			} else {
+				throw gcnew Exception("Could not set scrobbling credentials: No session created");
+			}
+		}
+
+
+		void Session::setConnectionRules(ConnectionRules connectionRules) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_set_connection_rules(session, static_cast<sp_connection_rules>(connectionRules));
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set connection rules: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set connection rules: No session created");
+			}
+		}
+
+		void Session::setConnectionType(ConnectionType connectionType) {
+			if (state >= SessionState::SessionCreated) {
+				sp_error error = sp_session_set_connection_type(session, static_cast<sp_connection_type>(connectionType));
+
+				if (error != sp_error::SP_ERROR_OK) {
+					throw gcnew Exception(String::Format("Could not set connection type: {0}", static_cast<SpErrorCode>(error)));
+				}
+			} else {
+				throw gcnew Exception("Could not set connection type: No session created");
+			}
+		}
+
+		Playlist^ Session::createInbox() {
+			if (state >= SessionState::LoggedIn) {
+				sp_playlist* result = sp_session_inbox_create(session);
+
+				if (result != nullptr) {
+					return gcnew Playlist(result);
+				}
+
+				return nullptr;
+			} else {
+				throw gcnew Exception("Could not create inbox playlist: Not logged in");
+			}
+		}
+
+		Playlist^ Session::createStarred() {
+			if (state >= SessionState::LoggedIn) {
+				sp_playlist* result = sp_session_starred_create(session);
+
+				if (result != nullptr) {
+					return gcnew Playlist(result);
+				}
+
+				return nullptr;
+			} else {
+				throw gcnew Exception("Could not starred playlist: Not logged in");
+			}
+		}
+
+		Playlist^ Session::createStarredForUser(String^ userCanonicalName) {
+			if (state >= SessionState::LoggedIn) {
+				if (!String::IsNullOrEmpty(userCanonicalName)) {
+					const char* cstr_name = InteropUtilities::convertToCString(userCanonicalName);
+					sp_playlist* result = sp_session_starred_for_user_create(session, cstr_name);
+					delete cstr_name;
+
+					if (result != nullptr) {
+						return gcnew Playlist(result);
+					}
+				}
+
+				return nullptr;
+			} else {
+				throw gcnew Exception("Could not starred playlist: Not logged in");
+			}
+		}
+
+		LibSpotify::PlaylistContainer^ Session::createPublishedContainerForUser(String^ userCanonicalName) {
+			if (state >= SessionState::SessionCreated) {
+				if (!String::IsNullOrEmpty(userCanonicalName)) {
+					const char* cstr_name = InteropUtilities::convertToCString(userCanonicalName);
+					sp_playlistcontainer* result = sp_session_publishedcontainer_for_user_create(session, cstr_name);
+					delete cstr_name;
+
+					if (result != nullptr) {
+						return gcnew LibSpotify::PlaylistContainer(result);
+					}
+				}
+
+				return nullptr;
+			} else {
+				throw gcnew Exception("Could not starred playlist: Not session created.");
 			}
 		}
 
@@ -289,11 +516,7 @@ namespace Luna {
 		void Session::onLoggedOut(){
 
 		}
-		/*
-		int Session::onMusicDelivery(AudioFormat^ audioFormat, array<short>^ pcmData, int numFrames){
 
-		}
-		*/
 		void Session::onPlayTokenLost(){
 
 		}
@@ -304,6 +527,46 @@ namespace Luna {
 
 		
 		void Session::onLogMessage(String^ message){
+
+		}
+
+		void Session::onMessageToUser(String^ message) {
+
+		}
+
+		void Session::onPrivateSessionModeChanged(bool isPrivate) {
+
+		}
+
+		void Session::onGetAudioBufferStats(AudioBufferStats^ stats) {
+
+		}
+
+		void Session::onMetaDataUpdated() {
+
+		}
+
+		void Session::onStreamingError(SpErrorCode errorCode) {
+
+		}
+
+		void Session::onOfflineError(SpErrorCode errorCode) {
+
+		}
+
+		void Session::onConnectionStateUpdated() {
+
+		}
+
+		void Session::onOfflineStatusDataUpdated() {
+
+		}
+
+		void Session::onCredentialsBlobUpdated(String^ blob) {
+
+		}
+
+		void Session::onScrobbleError(SpErrorCode errorCode) {
 
 		}
 
@@ -349,8 +612,11 @@ namespace Luna {
 				if (errorCode == sp_error::SP_ERROR_OK) {
 					sp_user* user = sp_session_user(managedSession->session);
 					managedSession->ActiveUser = gcnew User(user);
+					managedSession->state = SessionState::LoggedIn;
+					managedSession->playlistContainer = gcnew LibSpotify::PlaylistContainer(sp_session_playlistcontainer(session));
 				} else {
 					managedSession->ActiveUser = nullptr;
+					managedSession->state = SessionState::SessionCreated;
 				}
 
 				SpErrorCode error = static_cast<SpErrorCode>(errorCode);
@@ -384,6 +650,7 @@ namespace Luna {
 			if (Session::sessionTable->ContainsKey(sessionPtr)){
 				Session^ managedSession = Session::sessionTable[sessionPtr];
 				managedSession->ActiveUser = nullptr;
+				managedSession->state = SessionState::SessionCreated;
 				managedSession->LoggedOut(managedSession, gcnew EventArgs());
 				managedSession->onLoggedOut();
 			}
@@ -398,5 +665,96 @@ namespace Luna {
 				managedSession->onLogMessage(InteropUtilities::convertToString(message));
 			}
 		}
+
+		void Session::raiseMessageToUser(sp_session* session, const char* data) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onMessageToUser(InteropUtilities::convertToString(data));
+			}
+		}
+
+		void Session::raiseStreamingError(sp_session* session, sp_error errorCode) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onStreamingError(static_cast<SpErrorCode>(errorCode));
+			}
+		}
+
+		void Session::raiseOfflineError(sp_session* session, sp_error errorCode) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onOfflineError(static_cast<SpErrorCode>(errorCode));
+			}
+		}
+
+		void Session::raiseConnectionStateUpdated(sp_session* session) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onConnectionStateUpdated();
+			}
+		}
+
+		void Session::raisePrivateSessionModeChanged(sp_session* session, bool is_private) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onPrivateSessionModeChanged(is_private);
+			}
+		}
+
+		void Session::raiseGetAudioBufferStats(sp_session* session, sp_audio_buffer_stats *stats) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onGetAudioBufferStats(gcnew AudioBufferStats(stats));
+			}
+		}
+
+		void Session::raiseMetaDataUpdated(sp_session* session) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onMetaDataUpdated();
+			}
+		}
+
+		void Session::raisOfflineStatusDataUpdated(sp_session* session) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onOfflineStatusDataUpdated();
+			}
+		}
+
+		void Session::raiseCredentialsBlobUpdated(sp_session* session, const char* blob) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onCredentialsBlobUpdated(InteropUtilities::convertToString(blob));
+			}
+		}
+
+		void Session::raiseScrobbleError(sp_session* session, sp_error errorCode) {
+			int sessionPtr = (int)session;
+
+			if (Session::sessionTable->ContainsKey(sessionPtr)){
+				Session^ managedSession = Session::sessionTable[sessionPtr];
+				managedSession->onScrobbleError(static_cast<SpErrorCode>(errorCode));
+			}
+		}
+
 	}
 }

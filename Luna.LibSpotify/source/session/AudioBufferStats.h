@@ -12,6 +12,9 @@ namespace Luna {
 		internal:
 			sp_audio_buffer_stats* stats;
 
+			AudioBufferStats(sp_audio_buffer_stats* stats) {
+				this->stats = stats;
+			}
 		public:
 			property int Samples {
 				int get(){
