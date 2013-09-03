@@ -30,6 +30,7 @@
     <ClInclude Include="source\InteropUtilities.h" />
     <ClInclude Include="source\links\Link.h" />
     <ClInclude Include="source\playlist\Playlist.h" />
+    <ClInclude Include="source\playlist\PlaylistContainer.h" />
     <ClInclude Include="source\search\Search.h" />
     <ClInclude Include="source\session\AudioBufferStats.h" />
     <ClInclude Include="source\session\AudioFormat.h" />

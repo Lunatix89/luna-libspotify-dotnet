@@ -122,5 +122,8 @@
     <ClInclude Include="source\artist\ArtistBrowse.h">
       <Filter>source\artist</Filter>
     </ClInclude>
+    <ClInclude Include="source\playlist\PlaylistContainer.h">
+      <Filter>source\playlist</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
