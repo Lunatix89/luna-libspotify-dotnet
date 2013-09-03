@@ -30,7 +30,7 @@ obj*/
 # Compiled Dynamic libraries
 *.so
 *.dylib
-
+spotify_appkey.key
 # Compiled Static libraries
 *.lai
 *.la

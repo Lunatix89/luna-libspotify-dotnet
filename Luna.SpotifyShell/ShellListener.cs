@@ -167,7 +167,9 @@ namespace Luna.SpotifyShell {
 		}
 
 		protected override void onStart(params string[] args) {
-			session = new PlaybackSession();
+			byte[] appkey = File.ReadAllBytes("spotify_appkey.key");
+
+			session = new PlaybackSession(appkey, "SpotifyDotnetTest");
 		}
 
 		protected override void onExit() {
