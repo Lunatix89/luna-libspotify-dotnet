@@ -10,6 +10,8 @@ using namespace System::Runtime::InteropServices;
 namespace Luna {
 	namespace LibSpotify {
 
+		ref class Album;
+		ref class Artist;
 		public ref class Track {
 		internal:
 			sp_track* track;
@@ -91,14 +93,12 @@ namespace Luna {
 				}
 			}
 
-			/*
-			property Album^ Album {
-				Album^ get() {
-
-				}
+			
+			property LibSpotify::Album^ Album {
+				LibSpotify::Album^ get();
 			}
-			*/
-			//Artist^ getArtist(int index);
+			
+			Artist^ getArtist(int index);
 			
 
 

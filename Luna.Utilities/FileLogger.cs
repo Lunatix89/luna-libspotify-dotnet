@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.SpotifyShell {
+namespace Luna.Utilities {
 	public class FileLogger : ConsoleLogger {
 		private StreamWriter streamWriter;
 		private string logDirectory;

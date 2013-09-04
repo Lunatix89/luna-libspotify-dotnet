@@ -15,6 +15,7 @@ namespace Luna {
 
 		
 		Session::Session(){
+			actualTrack = nullptr;
 			actionStack = gcnew List<ActionInfo^>();
 			state = SessionState::None;
 			processLock = gcnew Object();
@@ -455,6 +456,13 @@ namespace Luna {
 		}
 
 		/** player **/
+
+		void Session::playTrack(Track^ track) {
+			ActualTrack = track;
+
+			playerLoad(track);
+			playerPlay(true);
+		}
 
 		void Session::playerLoad(Track^ track) {
 			sp_error error = sp_session_player_load(session, track->getPlayable(session));

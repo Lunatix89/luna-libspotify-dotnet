@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Luna.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.SpotifyShell {
+namespace Luna.Utilities {
 	public class ConsoleLogger : Logger {
 
 		public ConsoleLogger() {

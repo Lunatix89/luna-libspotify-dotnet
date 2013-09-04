@@ -26,6 +26,27 @@ namespace Luna {
 
 			}
 
+			property int NumTracks {
+				int get() {
+					if (playlist != nullptr) {
+						return sp_playlist_num_tracks(playlist);
+					}
+					return 0;
+				}
+			}
+
+			Track^ getTrack(int index) {
+				if ((index < 0) || (index >= NumTracks)) {
+					throw gcnew IndexOutOfRangeException();
+				}
+				
+				sp_track* track = sp_playlist_track(playlist, index);
+				if (track != nullptr) {
+					return gcnew Track(track);
+				}
+
+				return nullptr;
+			}
 		};
 	}
 }

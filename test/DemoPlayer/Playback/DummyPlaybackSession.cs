@@ -1,40 +1,30 @@
-﻿using System;
+﻿using Luna.LibSpotify;
+using Luna.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Luna.LibSpotify;
-using System.IO;
-using Luna.Utilities;
-
-namespace Luna.SpotifyShell {
-	public class PlaybackSession  : Session {
-		private readonly object streamLock = new object();
-		private Stream playbackStream;
-		private BinaryWriter playbackWriter;
+namespace DemoPlayer.Playback {
+	public class DummyPlaybackSession : Session {
+		private double totalTrackLength;
+		private double consumedTrackLength;
+		private double playbackPosition;
 
 		public override double PlaybackPosition {
-			get;
-			set;
-		}
-
-		public Stream PlaybackStream {
-			get { return playbackStream; }
+			get { return playbackPosition; }
 			set {
-				lock (streamLock) {
-					playbackStream = value;
-					playbackWriter = new BinaryWriter(playbackStream, Encoding.Default, true);
-				}
+				playbackPosition = value;
 			}
 		}
 
-		public PlaybackSession(string appkey, string userAgent) {
+		public DummyPlaybackSession(string appkey, string userAgent) {
 			SessionConfig.ApplicationKey = Encoding.ASCII.GetBytes(appkey);
 			SessionConfig.UserAgent = userAgent;
 		}
 
-		public PlaybackSession(byte[] appkey, string userAgent) {
+		public DummyPlaybackSession(byte[] appkey, string userAgent) {
 			SessionConfig.ApplicationKey = appkey;
 			SessionConfig.UserAgent = userAgent;
 		}
@@ -81,17 +71,24 @@ namespace Luna.SpotifyShell {
 			Logger.Instance.log(message);
 		}
 
-		public override int onMusicDelivery(AudioFormat audioFormat, short[] pcmData, int numFrames) {
-			if (playbackStream != null) {
-				lock (streamLock) {
-					for (int n = 0; n < pcmData.Length; n++) {
-						playbackWriter.Write(pcmData[n]);
-					}
+		public override void playTrack(Track track) {
+			base.playTrack(track);
 
-				}
+			PlaybackPosition = 0;
+			consumedTrackLength = 0;
+			totalTrackLength = (int)track.Duration.TotalMilliseconds;
+		}
+
+		public override int onMusicDelivery(AudioFormat audioFormat, short[] pcmData, int numFrames) {
+			consumedTrackLength += (numFrames / (audioFormat.SampleRate / 1000.0));
+			if (totalTrackLength > 0) {
+				PlaybackPosition = consumedTrackLength / totalTrackLength;
+			} else {
+				PlaybackPosition = 0;
 			}
 
 			return numFrames;
 		}
+
 	}
 }

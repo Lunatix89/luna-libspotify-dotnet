@@ -26,6 +26,14 @@ namespace Luna {
 
 			}
 
+			property String^ Name {
+				String^ get() {
+					if (artist != nullptr) {
+						return InteropUtilities::convertToString(sp_artist_name(artist));
+					}
+					return String::Empty;
+				}
+			}
 		};
 	}
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Luna.SpotifyShell {
+namespace Luna.Utilities {
 	public abstract class Logger {
 		private static Logger instance;
 		private LogLevel logLevel = LogLevel.All;

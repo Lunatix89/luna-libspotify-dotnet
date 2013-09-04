@@ -1,4 +1,6 @@
 #include "Track.h"
+#include "../album/Album.h";
+#include "../artist/Artist.h";
 
 using namespace System;
 using namespace System::Runtime::InteropServices;
@@ -44,6 +46,30 @@ namespace Luna {
 
 		Track::~Track() {
 			release();
+		}
+
+		LibSpotify::Album^ Track::Album::get() {
+			if (track != nullptr) {
+				sp_album* album = sp_track_album(track);
+
+				if (album != nullptr) {
+					return gcnew LibSpotify::Album(album);
+				}
+			}
+
+			return nullptr;
+		}
+
+		Artist^ Track::getArtist(int index) {
+			if (track != nullptr) {
+				sp_artist* artist = sp_track_artist(track, index);
+
+				if (artist != nullptr) {
+					return gcnew Artist(artist);
+				}
+			}
+
+			return nullptr;
 		}
 
 		Track^ Track::createLocal(String^ artist, String^ album, String^ title, int duration) {

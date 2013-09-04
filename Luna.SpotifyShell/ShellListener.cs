@@ -1,4 +1,5 @@
 ﻿using Luna.LibSpotify;
+using Luna.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -163,7 +164,12 @@ namespace Luna.SpotifyShell {
 		}
 
 		protected override void onPasswordEntered(string password) {
-			session.createSession();
+			if (!session.IsSessionCreated) {
+				session.createSession();
+			}
+			if (session.IsLoggedIn) {
+				session.logout();
+			}
 			session.login(username, password);
 		}
 
@@ -174,8 +180,12 @@ namespace Luna.SpotifyShell {
 		}
 
 		protected override void onExit() {
-			session.logout();
-			session.releaseSession();
+			if (session.IsLoggedIn) {
+				session.logout();
+			}
+			if (session.IsSessionCreated) {
+				session.releaseSession();
+			}
 		}
 	}
 }

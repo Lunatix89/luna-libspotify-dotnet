@@ -74,6 +74,7 @@ namespace Luna {
 			static const int initialDeliveryBufferSize = 1024;
 
 		private:
+			Track^ actualTrack;
 			bool isDisposed;
 			SessionState state;
 			AutoResetEvent^ processEvent;
@@ -129,8 +130,7 @@ namespace Luna {
 					activeUser = value;
 				}
 			}
-			
-			
+						
 			property bool IsPrivateSession {
 				bool get() {
 					if (session != nullptr) {
@@ -175,6 +175,21 @@ namespace Luna {
 					}
 					return 0;
 				}
+			}
+
+			property Track^ ActualTrack {
+				Track^ get() {
+					return actualTrack;
+				}
+				private:
+				void set(Track^ value) {
+					actualTrack = value;
+				}
+			}
+
+			property double PlaybackPosition  {
+				virtual double get() abstract;
+				virtual void set(double value) abstract;
 			}
 
 			property TimeSpan OfflineTimeLeft {
@@ -234,6 +249,8 @@ namespace Luna {
 			void playerPrefetch(Track^ track);
 			void playerSeek(TimeSpan offset);
 			void playerUnload();
+
+			virtual void playTrack(Track^ track);
 
 			virtual void onSessionCreated(SpErrorCode errorcode);
 			virtual void onSessionReleased();
